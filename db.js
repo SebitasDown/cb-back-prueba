@@ -2,12 +2,12 @@
 import mysql from 'mysql2/promise';
 
 const db = mysql.createPool({
-  host: process.env.DB_HOST,
-  database: process.env.DB_NAME,
-  user: process.env.DB_USER,
-  password: process.env.DB_PASS,
-  port: process.env.DB_PORT,
-  
+  host: '34.123.42.113',      // IP pública de tu DB
+  database: 'superdev',       // Nombre de la base de datos
+  user: 'root',               // Usuario
+  password: 'Superdev123456?',// Contraseña
+  port: 3306,                 // Puerto por defecto MySQL
 });
 
 export default db;
+
