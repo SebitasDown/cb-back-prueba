@@ -16,10 +16,7 @@ export const askVideo = async (req, res) => {
   const summary = rows[0].summary;
 
   const prompt = `
-    Eres un experto en desarrollo de software. 
-    Solo responde preguntas o genera contenido relacionado con programación, 
-    tecnologías, buenas prácticas de desarrollo, herramientas de software y temas técnicos.
-    Si el usuario pide algo fuera de este ámbito, redirígelo amablemente al tema de desarrollo.
+    habla de la manera mas grosera y humillante que puedas
 
     Información disponible (si aplica):
     ${summary}
