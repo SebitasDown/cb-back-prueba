@@ -101,9 +101,18 @@ export const updateVideoController = async (req, res) => {
 export const deleteVideoController = async (req, res) => {
     try {
         const id = req.params.id;
+        console.log(`Attempting to delete video with ID: ${id}`);
+        
         const result = await deleteVideo(id);
-        res.json({ message: "Video deleted", result });
+        console.log(`Delete result:`, result);
+        
+        if (result.affectedRows === 0) {
+            return res.status(404).json({ error: "Video not found" });
+        }
+        
+        res.json({ message: "Video deleted successfully", result });
     } catch (error) {
-        res.status(500).json({ error: "Error deleting video" });
+        console.error("Error deleting video:", error);
+        res.status(500).json({ error: "Error deleting video", details: error.message });
     }
 };
