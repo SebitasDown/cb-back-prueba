@@ -16,21 +16,13 @@ cloudinary.config();
 
 // Initialize Express
 const app = express();
-// Configuración de CORS para permitir peticiones desde el frontend
-app.use(cors({
-    origin: ['https://cb-front-1d2hf8bcb-sebitasdowns-projects.vercel.app', 'https://cb-front.vercel.app'],
-    credentials: true,
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization', 'x-auth-token']
-}));
 app.use(express.json()); // To handle JSON in requests
 
-// Middleware adicional para CORS
+// Configuración de CORS para permitir subida de videos
 app.use((req, res, next) => {
-    res.header('Access-Control-Allow-Origin', 'https://cb-front-1d2hf8bcb-sebitasdowns-projects.vercel.app');
+    res.header('Access-Control-Allow-Origin', '*');
     res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
-    res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization, x-auth-token');
-    res.header('Access-Control-Allow-Credentials', 'true');
+    res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, x-auth-token');
     
     if (req.method === 'OPTIONS') {
         res.sendStatus(200);
