@@ -16,9 +16,8 @@ cloudinary.config();
 
 // Initialize Express
 const app = express();
-app.use(express.json()); // To handle JSON in requests
 
-// Configuración de CORS para permitir subida de videos
+// Configuración de CORS para permitir subida de videos - DEBE IR ANTES DE TODO
 app.use((req, res, next) => {
     res.header('Access-Control-Allow-Origin', '*');
     res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
@@ -30,6 +29,8 @@ app.use((req, res, next) => {
         next();
     }
 });
+
+app.use(express.json()); // To handle JSON in requests
 
 
 
