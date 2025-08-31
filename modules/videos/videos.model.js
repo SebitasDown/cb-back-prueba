@@ -43,6 +43,10 @@ export const updateVideo = async (id, videoData) => {
 
 // Delete a video
 export const deleteVideo = async (id) => {
+    // First, delete all comments associated with the video
+    await db.query("DELETE FROM comments WHERE id_video = ?", [id]);
+    
+    // Then delete the video
     const [rows] = await db.query("DELETE FROM videos WHERE id_video = ?", [id]);
     return rows;
 };
