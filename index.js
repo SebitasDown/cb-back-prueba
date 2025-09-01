@@ -21,6 +21,7 @@ const app = express();
 const corsOptions = {
     origin: [
         'https://cb-front-lol.vercel.app',
+        'https://cb-front-nuegaam1f-sebitasdowns-projects.vercel.app',
         'http://localhost:3000',
         'http://localhost:5173',
         'http://localhost:4173',
