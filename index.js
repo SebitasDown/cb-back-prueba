@@ -18,6 +18,7 @@ const app = express();
 // 🔥 Lista de orígenes permitidos
 const allowedOrigins = [
   "http://localhost:5173",
+  "https://cb-front.vercel.app",
   "https://cb-front-1d2hf8bcb-sebitasdowns-projects.vercel.app",
   "https://cb-front-7c14.vercel.app",
   "https://cb-back-prueba-gf2kjttpd-sebitasdowns-projects.vercel.app"
