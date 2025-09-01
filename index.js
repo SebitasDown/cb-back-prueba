@@ -15,33 +15,43 @@ cloudinary.config();
 
 const app = express();
 
-// 🔥 Lista de orígenes permitidos
+// 🔥 Lista de orígenes permitidos (Frontend en Vercel y localhost)
 const allowedOrigins = [
-  "http://localhost:5173",
-  "https://cb-front.vercel.app",
-  "https://cb-front-1d2hf8bcb-sebitasdowns-projects.vercel.app",
-  "https://cb-front-7c14.vercel.app",
-  "https://cb-back-prueba-gf2kjttpd-sebitasdowns-projects.vercel.app"
+  "http://localhost:5173", // Desarrollo local
+  "https://cb-front.vercel.app", // Frontend principal en Vercel
+  "https://cb-front-1d2hf8bcb-sebitasdowns-projects.vercel.app", // Frontend en Vercel
+  "https://cb-front-7c14.vercel.app", // Frontend alternativo en Vercel
+  "https://cb-back-prueba-gf2kjttpd-sebitasdowns-projects.vercel.app" // Backend en Vercel
 ];
 
-// ✅ Configuración de CORS simplificada
+// ✅ Configuración de CORS
 app.use(cors({
-  origin: allowedOrigins,
+  origin: function (origin, callback) {
+    // Permitir solicitudes sin 'origin' (ej: Postman)
+    if (!origin) return callback(null, true);
+    if (allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error("No permitido por CORS"));
+    }
+  },
   methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
   allowedHeaders: ["Content-Type", "Authorization", "x-auth-token"],
   credentials: true
 }));
 
-// ✅ Aumentar límite para recibir archivos grandes
-app.use(express.json({ limit: "200mb" }));
-app.use(express.urlencoded({ limit: "200mb", extended: true }));
+// ✅ Middleware para manejar preflight (OPTIONS)
+app.options("*", cors());
 
-// ✅ Ruta de prueba
+// Middleware para parsear JSON
+app.use(express.json());
+
+// Rutas de prueba
 app.get("/hello", (req, res) => {
   res.json({ name: "David" });
 });
 
-// ✅ Rutas principales
+// Rutas principales
 app.use("/videos", videosRoutes);
 app.use("/categories", categoriesRoutes);
 app.use("/speakers", speakersRoutes);
@@ -50,15 +60,7 @@ app.use("/comment", Comments);
 app.use("/chat", chatRoute);
 app.use("/auth", authRoutes);
 
-// ✅ Puerto dinámico para Vercel o 3000 local
-const PORT = process.env.PORT || 3000;
-
-// Para desarrollo local
-if (process.env.NODE_ENV !== 'production') {
-  app.listen(PORT, () => {
-    console.log(`Server running on: http://localhost:${PORT}`);
-  });
-}
-
-// Para Vercel - exportar la app
-export default app;
+// Iniciar servidor
+app.listen(3000, () => {
+  console.log("Server running on: http://localhost:3000");
+});
