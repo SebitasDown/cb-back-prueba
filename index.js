@@ -24,24 +24,13 @@ const allowedOrigins = [
   "https://cb-back-prueba-gf2kjttpd-sebitasdowns-projects.vercel.app"
 ];
 
-// ✅ Configuración de CORS
-app.use(
-  cors({
-    origin: function (origin, callback) {
-      if (!origin || allowedOrigins.includes(origin)) {
-        callback(null, true);
-      } else {
-        callback(new Error("No permitido por CORS"));
-      }
-    },
-    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-    allowedHeaders: ["Content-Type", "Authorization", "x-auth-token"],
-    credentials: true,
-  })
-);
-
-// ✅ Middleware para manejar preflight (OPTIONS)
-app.options("*", cors());
+// ✅ Configuración de CORS simplificada
+app.use(cors({
+  origin: allowedOrigins,
+  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization", "x-auth-token"],
+  credentials: true
+}));
 
 // ✅ Aumentar límite para recibir archivos grandes
 app.use(express.json({ limit: "200mb" }));
@@ -64,6 +53,12 @@ app.use("/auth", authRoutes);
 // ✅ Puerto dinámico para Vercel o 3000 local
 const PORT = process.env.PORT || 3000;
 
-app.listen(PORT, () => {
-  console.log(`Server running on: http://localhost:${PORT}`);
-});
+// Para desarrollo local
+if (process.env.NODE_ENV !== 'production') {
+  app.listen(PORT, () => {
+    console.log(`Server running on: http://localhost:${PORT}`);
+  });
+}
+
+// Para Vercel - exportar la app
+export default app;
