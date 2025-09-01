@@ -15,39 +15,39 @@ cloudinary.config();
 
 const app = express();
 
-// 🔥 Lista de orígenes permitidos (Frontend en Vercel y localhost)
+// 🔥 Lista de orígenes permitidos
 const allowedOrigins = [
-  "http://localhost:5173", // Desarrollo local
-  "https://cb-front-1d2hf8bcb-sebitasdowns-projects.vercel.app", // Frontend en Vercel
-  "https://cb-front-7c14.vercel.app", // Frontend alternativo en Vercel
-  "https://cb-back-prueba-gf2kjttpd-sebitasdowns-projects.vercel.app" // Backend en Vercel
+  "http://localhost:5173",
+  "https://cb-front-1d2hf8bcb-sebitasdowns-projects.vercel.app",
+  "https://cb-front-7c14.vercel.app",
+  "https://cb-back-prueba-gf2kjttpd-sebitasdowns-projects.vercel.app"
 ];
 
 // ✅ Configuración de CORS
-app.use(cors({
-  origin: function (origin, callback) {
-    // Permitir solicitudes sin 'origin' (ej: Postman)
-    if (!origin) return callback(null, true);
-    if (allowedOrigins.includes(origin)) {
-      callback(null, true);
-    } else {
-      callback(new Error("No permitido por CORS"));
-    }
-  },
-  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-  allowedHeaders: ["Content-Type", "Authorization", "x-auth-token"],
-  credentials: true
-}));
+app.use((req, res, next) => {
+  const origin = req.headers.origin;
+  if (allowedOrigins.includes(origin)) {
+    res.header("Access-Control-Allow-Origin", origin);
+  }
+  res.header("Access-Control-Allow-Methods", "GET,POST,PUT,DELETE,OPTIONS");
+  res.header("Access-Control-Allow-Headers", "Content-Type, Authorization, x-auth-token");
+  res.header("Access-Control-Allow-Credentials", "true");
+  if (req.method === "OPTIONS") {
+    return res.sendStatus(200);
+  }
+  next();
+});
 
-// Middleware para parsear JSON
-app.use(express.json());
+// ✅ Aumentar límite para recibir archivos grandes
+app.use(express.json({ limit: "200mb" }));
+app.use(express.urlencoded({ limit: "200mb", extended: true }));
 
-// Rutas de prueba
+// ✅ Ruta de prueba
 app.get("/hello", (req, res) => {
   res.json({ name: "David" });
 });
 
-// Rutas principales
+// ✅ Rutas principales
 app.use("/videos", videosRoutes);
 app.use("/categories", categoriesRoutes);
 app.use("/speakers", speakersRoutes);
@@ -56,7 +56,7 @@ app.use("/comment", Comments);
 app.use("/chat", chatRoute);
 app.use("/auth", authRoutes);
 
-// Iniciar servidor
+// ✅ Iniciar servidor
 app.listen(3000, () => {
   console.log("Server running on: http://localhost:3000");
 });
