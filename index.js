@@ -25,19 +25,23 @@ const allowedOrigins = [
 ];
 
 // ✅ Configuración de CORS
-app.use((req, res, next) => {
-  const origin = req.headers.origin;
-  if (allowedOrigins.includes(origin)) {
-    res.header("Access-Control-Allow-Origin", origin);
-  }
-  res.header("Access-Control-Allow-Methods", "GET,POST,PUT,DELETE,OPTIONS");
-  res.header("Access-Control-Allow-Headers", "Content-Type, Authorization, x-auth-token");
-  res.header("Access-Control-Allow-Credentials", "true");
-  if (req.method === "OPTIONS") {
-    return res.sendStatus(200);
-  }
-  next();
-});
+app.use(
+  cors({
+    origin: function (origin, callback) {
+      if (!origin || allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        callback(new Error("No permitido por CORS"));
+      }
+    },
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization", "x-auth-token"],
+    credentials: true,
+  })
+);
+
+// ✅ Middleware para manejar preflight (OPTIONS)
+app.options("*", cors());
 
 // ✅ Aumentar límite para recibir archivos grandes
 app.use(express.json({ limit: "200mb" }));
@@ -57,7 +61,9 @@ app.use("/comment", Comments);
 app.use("/chat", chatRoute);
 app.use("/auth", authRoutes);
 
-// ✅ Iniciar servidor
-app.listen(3000, () => {
-  console.log("Server running on: http://localhost:3000");
+// ✅ Puerto dinámico para Vercel o 3000 local
+const PORT = process.env.PORT || 3000;
+
+app.listen(PORT, () => {
+  console.log(`Server running on: http://localhost:${PORT}`);
 });
