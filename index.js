@@ -22,7 +22,7 @@ const corsOptions = {
     origin: [
         'https://cb-front.vercel.app',
         'https://cb-front-nuegaam1f-sebitasdowns-projects.vercel.app',
-        'https://cb-front.vercel.app',
+        'https://cb-front.vercel.app/video/create',
         'http://localhost:3000',
         'http://localhost:5173',
         'http://localhost:4173',
