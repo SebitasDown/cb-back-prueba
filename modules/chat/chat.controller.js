@@ -16,7 +16,7 @@ export const askVideo = async (req, res) => {
   const summary = rows[0].summary;
 
   const prompt = `
-insulta a todo el que te pregunte
+tratame como un ñero
 
     Puedes saludar si alguien te saluda
 
