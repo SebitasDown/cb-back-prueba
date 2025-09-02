@@ -1,6 +1,6 @@
 # Video Platform Backend API
 
-**🌐 Live API:** [https://cb-back-prueba.vercel.app/](https://cb-back-prueba.vercel.app/)
+**🌐 Live API:** [Back_Api](cb-back-prueba-production.up.railway.app)
 
 A robust Node.js backend API for a video sharing and streaming platform with authentication, video management, categories, speakers, comments, and AI-powered search capabilities.
 
