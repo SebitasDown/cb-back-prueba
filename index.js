@@ -21,6 +21,7 @@ const app = express();
 const corsOptions = {
     origin: [
         'https://cb-front.vercel.app',
+        'https://cb-front.vercel.app/',
         'https://cb-front-nuegaam1f-sebitasdowns-projects.vercel.app',
         'https://cb-front.vercel.app/video/create',
         'http://localhost:3000',
@@ -44,7 +45,7 @@ app.use(express.json()); // To handle JSON in requests
 
 app.get("/hello", (req, res) => {
 
-    res.json({name: "David"});
+    res.json({ name: "David" });
 })
 
 // Routes
