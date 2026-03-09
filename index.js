@@ -19,18 +19,7 @@ const app = express();
 
 // Configuración de CORS - DEBE IR ANTES DE TODO
 const corsOptions = {
-    origin: [
-        'https://cb-front.vercel.app',
-        'https://cb-front.vercel.app/',
-        'https://cb-front-nuegaam1f-sebitasdowns-projects.vercel.app',
-        'https://cb-front.vercel.app/video/create',
-        'http://localhost:3000',
-        'http://localhost:5173',
-        'http://localhost:4173',
-        'http://127.0.0.1:5173',
-        'http://127.0.0.1:4173',
-        'https://cb-back-prueba-production.up.railway.app'
-    ],
+    origin: '*',
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization', 'x-auth-token', 'Origin', 'Accept'],
     credentials: true,
