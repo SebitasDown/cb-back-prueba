@@ -1,8 +1,9 @@
 //This is the main entrance of the backend (express lift)
 
+import "./env-override.js";
+import "dotenv/config";
 import express from "express";
 import cors from "cors";
-import dotenv from "dotenv";
 import videosRoutes from "./modules/videos/videos.routes.js";
 import categoriesRoutes from "./modules/categories/categories.routes.js";
 import speakersRoutes from "./modules/speakers/speakers.routes.js";
@@ -11,22 +12,13 @@ import searchVideos from "./modules/search/search.routes.js";
 import Comments from "./modules/comments/comment.routes.js"
 import chatRoute from "./modules/chat/chat.routes.js";
 import authRoutes from "./modules/auth/auth.routes.js";
-dotenv.config();
 cloudinary.config();
 
 // Initialize Express
 const app = express();
 
 // Configuración de CORS - DEBE IR ANTES DE TODO
-const corsOptions = {
-    origin: '*',
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization', 'x-auth-token', 'Origin', 'Accept'],
-    credentials: true,
-    optionsSuccessStatus: 200
-};
-
-app.use(cors(corsOptions));
+app.use(cors());
 
 app.use(express.json()); // To handle JSON in requests
 
@@ -46,6 +38,6 @@ app.use("/comment", Comments)
 app.use("/chat", chatRoute);
 app.use("/auth", authRoutes);
 // Start the server
-app.listen(3000, () => {
-    console.log("Server running on the port: http://localhost:3000");
+app.listen(3001, () => {
+    console.log("Server running on the port: http://localhost:3001");
 });

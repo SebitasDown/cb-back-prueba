@@ -34,17 +34,20 @@ export const updateComent = async (req, res) => {
         console.log('🔍 UPDATE - req.body:', req.body);
         
         const {id_comment} = req.params;
-        const {comments} = req.body;
+        const {comments, id_user} = req.body;
         
-        if (!id_comment || !comments) {
-            console.log('❌ UPDATE - Validación fallida:', { id_comment, comments });
-            return res.status(400).json({ error: 'id_comment y comments son requeridos' });
+        if (!id_comment || !comments || !id_user) {
+            console.log('❌ UPDATE - Validación fallida:', { id_comment, comments, id_user });
+            return res.status(400).json({ error: 'id_comment, comments y id_user son requeridos' });
         }
         
         const updateCo = await updateComments(id_comment, req.body);
         res.json(updateCo);
     } catch (error) {
         console.error('Error en updateComent:', error);
+        if (error.status === 403) {
+            return res.status(403).json({ error: error.message });
+        }
         res.status(500).json({ error: 'Error interno del servidor' });
     }
 };
@@ -55,13 +58,14 @@ export const deleteComment = async (req, res) => {
         console.log('🔍 DELETE - req.body:', req.body);
         
         const {id_comment} = req.params;
+        const {id_user} = req.body;
         
-        if (!id_comment) {
-            console.log('❌ DELETE - Validación fallida:', { id_comment });
-            return res.status(400).json({ error: 'id_comment es requerido' });
+        if (!id_comment || !id_user) {
+            console.log('❌ DELETE - Validación fallida:', { id_comment, id_user });
+            return res.status(400).json({ error: 'id_comment y id_user son requeridos' });
         }
         
-        await deleteComments(id_comment);
+        await deleteComments(id_comment, id_user);
         res.json({message: "Comentario eliminado correctamente"});
     } catch (error) {
         console.error('Error en deleteComment:', error);

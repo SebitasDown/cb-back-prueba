@@ -9,14 +9,14 @@ import {
   getAllVideosController,
   updateVideoController,
   deleteVideoController,
+  getUploadSignature,
 } from "./videos.controller.js";
 
 const router = express.Router();
 
-// 🔥 Multer configuration for serverless environments
-// Instead of writing to /uploads (read-only), use /tmp (temporary)
+// Multer — only used for UPDATE (PUT) which still receives a file
 const storage = multer.diskStorage({
-  destination: "/tmp", // Safe temporary folder
+  destination: "/tmp",
   filename: (req, file, cb) => {
     cb(null, Date.now() + "-" + file.originalname);
   },
@@ -25,14 +25,6 @@ const storage = multer.diskStorage({
 const upload = multer({
   storage,
   fileFilter: (req, file, cb) => {
-    // Log file info for debugging
-    console.log("File received:", {
-      originalname: file.originalname,
-      mimetype: file.mimetype,
-      size: file.size,
-    });
-
-    // Allow common video mimetypes and extensions
     const allowedTypes = [
       "video/mp4",
       "video/avi",
@@ -41,32 +33,13 @@ const upload = multer({
       "video/flv",
       "video/quicktime",
     ];
-    const allowedExtensions = [
-      ".mp4",
-      ".avi",
-      ".mov",
-      ".wmv",
-      ".flv",
-      ".qt",
-    ];
+    const allowedExtensions = [".mp4", ".avi", ".mov", ".wmv", ".flv", ".qt"];
 
-    if (allowedTypes.includes(file.mimetype)) {
-      console.log("File accepted by mimetype:", file.mimetype);
-      return cb(null, true);
-    }
+    if (allowedTypes.includes(file.mimetype)) return cb(null, true);
 
     const fileExtension = path.extname(file.originalname).toLowerCase();
-    if (allowedExtensions.includes(fileExtension)) {
-      console.log("File accepted by extension:", fileExtension);
-      return cb(null, true);
-    }
+    if (allowedExtensions.includes(fileExtension)) return cb(null, true);
 
-    console.log(
-      "File rejected - mimetype:",
-      file.mimetype,
-      "extension:",
-      fileExtension
-    );
     cb(new Error("Invalid file type. Only video files are allowed."), false);
   },
   limits: {
@@ -94,8 +67,18 @@ const handleMulterError = (error, req, res, next) => {
   next(error);
 };
 
-// Endpoints
-router.post("/create", upload.single("file"), handleMulterError, createVideo);
+// ────────────────────────────────────────────────
+// Routes
+// ────────────────────────────────────────────────
+
+// Frontend calls this first to get a secure Cloudinary signature
+router.get("/upload-signature", getUploadSignature);
+
+// Frontend calls this after the video is uploaded directly to Cloudinary,
+// passing only metadata (url, public_id, duration, title, etc.)
+// No file upload happens here — backend stays lean and Vercel-friendly.
+router.post("/create", createVideo);
+
 router.get("/", getAllVideosController);
 router.put("/:id", upload.single("file"), handleMulterError, updateVideoController);
 router.delete("/:id", deleteVideoController);

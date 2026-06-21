@@ -1,54 +1,125 @@
-// chat.controller.js
 import db from "../../db.js";
-import { GoogleGenerativeAI } from "@google/generative-ai";
-import dotenv from "dotenv";
+import Groq from "groq-sdk";
+import connectMongo from "../../mongodb.js";
+import { createSession, getSessionsByUser, getSessionById, getRecentMessages, saveMessage, deleteOldMessages, buildContext } from "../../services/chatMemory.js";
 
-dotenv.config();
+function getGroq() {
+  return new Groq({ apiKey: process.env.GROQ_API_KEY });
+}
 
-const genAI = new GoogleGenerativeAI(process.env.GOOGLE_AI_API_KEY);
-const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
+const SYSTEM_PROMPT = `
+Responde solo preguntas relacionadas con programación, siempre en español, con calma y paciencia.
+Puedes saludar si alguien te saluda.
+`;
 
 export const askVideo = async (req, res) => {
-  const { ask, videoID } = req.body;
+  const { ask, videoID, sessionId, userId } = req.body;
+
+  if (!ask) {
+    return res.status(400).json({ error: "ask es requerido" });
+  }
 
   try {
-    const [rows] = await db.execute(
-      "SELECT summary FROM videos WHERE id_video = ?",
-      [videoID]
-    );
+    await connectMongo();
 
-    if (rows.length === 0) {
-      return res.status(404).json({ error: "Video no encontrado" });
+    let videoSummary = "";
+    if (videoID) {
+      const [rows] = await db.execute(
+        "SELECT summary, title FROM videos WHERE id_video = ?",
+        [videoID]
+      );
+      if (rows.length > 0) {
+        videoSummary = `Información del video "${rows[0].title}":\n${rows[0].summary}`;
+      }
     }
 
-    const summary = rows[0].summary;
+    const systemContent = `${SYSTEM_PROMPT}\n\n${videoSummary ? `${videoSummary}\n\n` : ""}Responde basándote en la información del video cuando sea relevante.`;
 
-    const prompt = `
-   responde solo preguntas relacionadas con programacion pero siempre responde en español con calma y pasiente
+    let activeSessionId = sessionId;
 
-    Puedes saludar si alguien te saluda
+    if (sessionId) {
+      const session = await getSessionById(sessionId);
+      if (!session) {
+        return res.status(404).json({ error: "Sesión no encontrada" });
+      }
+    } else if (userId) {
+      const session = await createSession(userId, ask.substring(0, 60));
+      activeSessionId = session._id;
+    }
 
-    Información disponible (si aplica):
-    ${summary}
+    if (!activeSessionId) {
+      return res.status(400).json({ error: "sessionId o userId son requeridos" });
+    }
 
-    Pregunta:
-    ${ask}
-  `;
+    const context = await buildContext(activeSessionId, userId, systemContent);
 
-    const result = await model.generateContent(prompt);
-    const responses = result.response.text();
+    context.push({ role: "user", content: ask });
 
-    res.json({ responses });
+    const completion = await getGroq().chat.completions.create({
+      model: "llama-3.3-70b-versatile",
+      messages: context,
+    });
+
+    const responseContent = completion.choices[0]?.message?.content || "";
+
+    await saveMessage(activeSessionId, userId, "user", ask);
+    await saveMessage(activeSessionId, userId, "assistant", responseContent);
+
+    await deleteOldMessages(activeSessionId, 50);
+
+    return res.json({
+      responses: responseContent,
+      sessionId: activeSessionId,
+    });
   } catch (error) {
-    console.error("Error en Gemini API:", error);
-
-    // Manejo de error de cuota superada (429)
-    if (error.status === 429 || error.message?.includes("429") || error.message?.includes("Quota exceeded")) {
-      return res.status(429).json({
-        responses: "Lo siento, parcero, la IA está un poco saturada de camello en este momento. Por favor, intenta de nuevo en un minuto. 🙏"
-      });
-    }
-
+    console.error("Error en el chat:", error);
     res.status(500).json({ responses: "Hubo un error al procesar tu pregunta. Intenta más tarde." });
+  }
+};
+
+export const createSessionHandler = async (req, res) => {
+  const { userId, title } = req.body;
+
+  if (!userId) {
+    return res.status(400).json({ error: "userId es requerido" });
+  }
+
+  try {
+    await connectMongo();
+    const session = await createSession(userId, title);
+    return res.status(201).json(session);
+  } catch (error) {
+    console.error("Error creando sesión:", error);
+    res.status(500).json({ error: "Error creando sesión" });
+  }
+};
+
+export const getSessionsHandler = async (req, res) => {
+  const { userId } = req.query;
+
+  if (!userId) {
+    return res.status(400).json({ error: "userId es requerido" });
+  }
+
+  try {
+    await connectMongo();
+    const sessions = await getSessionsByUser(Number(userId));
+    return res.json(sessions);
+  } catch (error) {
+    console.error("Error obteniendo sesiones:", error);
+    res.status(500).json({ error: "Error obteniendo sesiones" });
+  }
+};
+
+export const getSessionMessagesHandler = async (req, res) => {
+  const { sessionId } = req.params;
+
+  try {
+    await connectMongo();
+    const messages = await getRecentMessages(sessionId, 50);
+    return res.json(messages);
+  } catch (error) {
+    console.error("Error obteniendo mensajes:", error);
+    res.status(500).json({ error: "Error obteniendo mensajes" });
   }
 };
